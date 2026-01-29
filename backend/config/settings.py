@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # local-apps
-    'apps.learning',
+    'apps.ping',
 ]
 
 MIDDLEWARE = [
