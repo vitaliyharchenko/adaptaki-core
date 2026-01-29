@@ -1,0 +1,20 @@
+# ======================
+# Python / Django
+# ======================
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# Django stuff
+staticfiles/
+media/
+
+# Migrations (опционально, пока оставим)
+# **/migrations/*.py
+# !**/migrations/__init__.py
