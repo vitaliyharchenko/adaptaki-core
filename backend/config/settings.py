@@ -45,6 +45,10 @@ INSTALLED_APPS = [
 
     # local-apps
     'apps.users',
+    'apps.graph',
+    'apps.exams',
+    'apps.tasks',
+    'apps.training',
 ]
 
 MIDDLEWARE = [
