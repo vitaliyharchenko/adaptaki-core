@@ -5,8 +5,8 @@ class Exam(models.Model):
     title = models.CharField(max_length=255, unique=True)
 
     class Meta:
-        verbose_name = "Exam"
-        verbose_name_plural = "Exams"
+        verbose_name = "Экзамен"
+        verbose_name_plural = "Экзамены"
 
     def __str__(self) -> str:  # pragma: no cover
         return self.title
@@ -23,8 +23,8 @@ class ExamType(models.Model):
     level = models.CharField(max_length=32, null=True, blank=True)
 
     class Meta:
-        verbose_name = "Exam type"
-        verbose_name_plural = "Exam types"
+        verbose_name = "Экзамен по предмету"
+        verbose_name_plural = "Экзамены по предметам"
         indexes = [
             models.Index(fields=["exam", "subject", "is_active"]),
         ]
@@ -52,8 +52,8 @@ class ExamTaskGroup(models.Model):
     max_score = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
-        verbose_name = "Exam task group"
-        verbose_name_plural = "Exam task groups"
+        verbose_name = "Группа (номер) экзаменационного задания"
+        verbose_name_plural = "Группы (номера) экзаменационных заданий"
         unique_together = [("exam_type", "num")]
         indexes = [
             models.Index(fields=["exam_type", "num"]),
@@ -71,9 +71,8 @@ class ExamTaskType(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        verbose_name = "Exam task type"
-        verbose_name_plural = "Exam task types"
+        verbose_name = "Тип задания (внутри группы)"
+        verbose_name_plural = "Типы заданий (внутри группы)"
 
     def __str__(self) -> str:  # pragma: no cover
         return f"{self.exam_task_group} / {self.title}"
-

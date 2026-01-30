@@ -14,8 +14,8 @@ class Test(models.Model):
     )
 
     class Meta:
-        verbose_name = "Test"
-        verbose_name_plural = "Tests"
+        verbose_name = "Тест"
+        verbose_name_plural = "Тесты"
         indexes = [
             models.Index(fields=["subject", "mode"]),
         ]
@@ -40,8 +40,8 @@ class TestItem(models.Model):
     )
 
     class Meta:
-        verbose_name = "Test item"
-        verbose_name_plural = "Test items"
+        verbose_name = "Элемент теста"
+        verbose_name_plural = "Элементы теста"
         unique_together = [("test", "order")]
         indexes = [
             models.Index(fields=["test", "order"]),
@@ -69,8 +69,8 @@ class TestAttempt(models.Model):
     max_score = models.DecimalField(max_digits=8, decimal_places=2, default=0)
 
     class Meta:
-        verbose_name = "Test attempt"
-        verbose_name_plural = "Test attempts"
+        verbose_name = "Попытка теста"
+        verbose_name_plural = "Попытки тестов"
         indexes = [
             models.Index(fields=["user", "status", "started_at"]),
             models.Index(fields=["test", "status", "started_at"]),
@@ -105,8 +105,8 @@ class TaskAttempt(models.Model):
     applied_max_score = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
 
     class Meta:
-        verbose_name = "Task attempt"
-        verbose_name_plural = "Task attempts"
+        verbose_name = "Попытка задания"
+        verbose_name_plural = "Попытки заданий"
         indexes = [
             models.Index(fields=["user", "task", "submitted_at"]),
             models.Index(fields=["test_attempt", "submitted_at"]),
@@ -114,4 +114,3 @@ class TaskAttempt(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover
         return f"TaskAttempt {self.id} / {self.user_id} / {self.task_id}"
-

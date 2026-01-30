@@ -7,8 +7,8 @@ class Subject(models.Model):
     title = models.CharField(max_length=255, unique=True)
 
     class Meta:
-        verbose_name = "Subject"
-        verbose_name_plural = "Subjects"
+        verbose_name = "Предмет"
+        verbose_name_plural = "Предметы"
 
     def __str__(self) -> str:  # pragma: no cover
         return self.title
@@ -19,8 +19,8 @@ class Concept(models.Model):
     description = models.TextField(blank=True, default="")
 
     class Meta:
-        verbose_name = "Concept"
-        verbose_name_plural = "Concepts"
+        verbose_name = "Концепция"
+        verbose_name_plural = "Концепции"
 
     def __str__(self) -> str:  # pragma: no cover
         return self.title
@@ -39,8 +39,8 @@ class Node(models.Model):
     )
 
     class Meta:
-        verbose_name = "Graph node"
-        verbose_name_plural = "Graph nodes"
+        verbose_name = "Вершина графа"
+        verbose_name_plural = "Вершины графа"
         indexes = [
             models.Index(fields=["subject", "type"]),
         ]
@@ -63,8 +63,8 @@ class Relation(models.Model):
     )
 
     class Meta:
-        verbose_name = "Graph relation"
-        verbose_name_plural = "Graph relations"
+        verbose_name = "Связь графа"
+        verbose_name_plural = "Связи графа"
         unique_together = [("parent", "child", "type")]
         indexes = [
             models.Index(fields=["parent", "type"]),
@@ -73,4 +73,3 @@ class Relation(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover
         return f"{self.parent} -> {self.child} ({self.type})"
-

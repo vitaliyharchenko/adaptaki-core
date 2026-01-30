@@ -8,8 +8,8 @@ class TaskNode(models.Model):
     node = models.ForeignKey("graph.Node", on_delete=models.CASCADE, related_name="node_tasks")
 
     class Meta:
-        verbose_name = "Task-node link"
-        verbose_name_plural = "Task-node links"
+        verbose_name = "Связь: задание — вершина графа"
+        verbose_name_plural = "Связи: задания — вершины графа"
         unique_together = [("task", "node")]
         indexes = [
             models.Index(fields=["task", "node"]),
@@ -56,8 +56,8 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Task"
-        verbose_name_plural = "Tasks"
+        verbose_name = "Задание"
+        verbose_name_plural = "Задания"
         indexes = [
             models.Index(fields=["subject", "task_type"]),
         ]
