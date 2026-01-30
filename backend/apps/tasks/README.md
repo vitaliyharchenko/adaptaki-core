@@ -55,8 +55,26 @@
 - `multi_choice` — несколько вариантов
 - `match` — сопоставление
 
+## Проверка ответов (application/answer_check.py)
+
+В `apps.tasks.application.answer_check` реализована базовая проверка ответов:
+- все типы проверяются по схеме "правильно/неправильно" (binary);
+- `answer_key.max_score` задает максимальный балл (по умолчанию 1);
+- допустимы разные форматы `answer_payload` (например, `"value"` или `"values"`).
+
+Примеры `answer_key`:
+- short_text:
+  - `{ "correct": ["масса"], "case_sensitive": false }`
+- number:
+  - `{ "correct": [3.14], "tolerance": 0.01 }`
+- single_choice:
+  - `{ "correct": "B" }`
+- multi_choice:
+  - `{ "correct": ["A", "C"] }`
+- match:
+  - `{ "correct": {"1": "A", "2": "B"} }`
+
 ## Про формулы и картинки
 
 - Формулы: храним LaTeX внутри Markdown (`$...$`, `$$...$$`), рендер на клиентах (KaTeX/MathJax).
 - Картинки: хранить как отдельные media-assets (будущий app), в `prompt`/`type_payload` хранить ссылки/идентификаторы.
-
