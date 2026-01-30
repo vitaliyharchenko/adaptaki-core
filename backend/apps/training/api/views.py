@@ -2,6 +2,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from django.db.models import DecimalField, Sum, Value
+from django.db.models.functions import Coalesce
 
 from apps.training.application.use_cases import (
     get_random_task_for_session,
@@ -11,6 +13,7 @@ from apps.training.application.use_cases import (
     RandomTaskNotFound,
     InvalidTestAttempt,
 )
+from apps.training.models import TestAttempt
 
 
 class RandomTaskView(APIView):
@@ -147,6 +150,7 @@ class SubmitAnswerView(APIView):
                 "max_score": str(attempt.applied_max_score or 0),
                 "submitted_at": attempt.submitted_at.isoformat(),
                 "solution_text": attempt.task.solution_text,
+                "answer_key": attempt.task.answer_key,
             }
         )
 
@@ -190,5 +194,101 @@ class FinishRandomSessionView(APIView):
                 "test_attempt_id": attempt.id,
                 "status": attempt.status,
                 "finished_at": attempt.finished_at.isoformat() if attempt.finished_at else None,
+            }
+        )
+
+
+class TestAttemptSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Возвращает сводку по попытке теста.
+
+        Пример запроса:
+            GET /api/training/test-attempt/summary/?test_attempt_id=555
+
+        Пример ответа:
+            {
+              "test_attempt_id": 555,
+              "status": "finished",
+              "started_at": "...",
+              "finished_at": "...",
+              "total_score": "3",
+              "max_score": "5",
+              "items": [
+                {
+                  "attempt_id": 999,
+                  "task_id": 123,
+                  "task_type": "short_text",
+                  "prompt": "...",
+                  "answer_payload": {"value": "масса"},
+                  "is_correct": true,
+                  "score": "1",
+                  "max_score": "1",
+                  "submitted_at": "...",
+                  "solution_text": "..."
+                }
+              ]
+            }
+        """
+        test_attempt_id = request.query_params.get("test_attempt_id")
+        if test_attempt_id is None:
+            return Response({"error": "test_attempt_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            test_attempt_id = int(test_attempt_id)
+        except (TypeError, ValueError):
+            return Response({"error": "test_attempt_id must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        attempt = (
+            TestAttempt.objects.select_related("test")
+            .filter(id=test_attempt_id, user=request.user)
+            .first()
+        )
+        if attempt is None:
+            return Response({"error": "Invalid test_attempt_id."}, status=status.HTTP_400_BAD_REQUEST)
+
+        task_attempts = (
+            attempt.task_attempts.select_related("task")
+            .order_by("submitted_at")
+        )
+
+        totals = task_attempts.aggregate(
+            total_score=Coalesce(
+                Sum("score"),
+                Value(0),
+                output_field=DecimalField(max_digits=8, decimal_places=2),
+            ),
+            max_score=Coalesce(
+                Sum(Coalesce("applied_max_score", Value(0))),
+                Value(0),
+                output_field=DecimalField(max_digits=8, decimal_places=2),
+            ),
+        )
+
+        return Response(
+            {
+                "test_attempt_id": attempt.id,
+                "status": attempt.status,
+                "started_at": attempt.started_at.isoformat(),
+                "finished_at": attempt.finished_at.isoformat() if attempt.finished_at else None,
+                "total_score": str(totals["total_score"]),
+                "max_score": str(totals["max_score"]),
+                "items": [
+                    {
+                        "attempt_id": item.id,
+                        "task_id": item.task_id,
+                        "task_type": item.task.task_type,
+                        "prompt": item.task.prompt,
+                        "answer_payload": item.answer_payload,
+                        "is_correct": item.is_correct,
+                        "score": str(item.score),
+                        "max_score": str(item.applied_max_score or 0),
+                        "submitted_at": item.submitted_at.isoformat(),
+                        "solution_text": item.task.solution_text,
+                    }
+                    for item in task_attempts
+                ],
             }
         )

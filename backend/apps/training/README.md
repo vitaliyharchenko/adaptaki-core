@@ -110,7 +110,7 @@
 ```
 
 #### POST /api/training/submit-answer/
-Принимает ответ пользователя, сохраняет попытку, возвращает результат и `solution_text`.
+Принимает ответ пользователя, сохраняет попытку, возвращает результат, `solution_text` и `answer_key`.
 
 Пример запроса:
 ```
@@ -131,7 +131,8 @@
   "score": "1",
   "max_score": "1",
   "submitted_at": "2026-01-30T12:34:56.789012",
-  "solution_text": "..."
+  "solution_text": "...",
+  "answer_key": { "correct": ["масса"], "case_sensitive": false }
 }
 ```
 
@@ -146,6 +147,38 @@
 Пример ответа:
 ```
 { "test_attempt_id": 555, "status": "finished", "finished_at": "..." }
+```
+
+#### GET /api/training/test-attempt/summary/
+Возвращает сводку по попытке теста (универсально для любого `TestAttempt`).
+
+Параметры (query):
+- `test_attempt_id` (обязательно)
+
+Пример ответа:
+```
+{
+  "test_attempt_id": 555,
+  "status": "finished",
+  "started_at": "2026-01-30T12:00:00Z",
+  "finished_at": "2026-01-30T12:10:00Z",
+  "total_score": "3",
+  "max_score": "5",
+  "items": [
+    {
+      "attempt_id": 999,
+      "task_id": 123,
+      "task_type": "short_text",
+      "prompt": "...",
+      "answer_payload": { "value": "масса" },
+      "is_correct": true,
+      "score": "1",
+      "max_score": "1",
+      "submitted_at": "2026-01-30T12:05:00Z",
+      "solution_text": "..."
+    }
+  ]
+}
 ```
 
 ### Механика завершения
