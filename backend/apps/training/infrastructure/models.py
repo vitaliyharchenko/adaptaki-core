@@ -5,6 +5,21 @@ from apps.training.domain.enums import AttemptStatus, TestMode
 
 
 class Test(models.Model):
+    """
+    Тест — заранее подготовленная последовательность заданий.
+
+    Важное:
+    - сами задания живут в `tasks.Task`;
+    - список заданий в тесте хранится в `TestItem` (order + max_score).
+
+    Пример:
+        Test.objects.create(
+            title="Тренировка: Квадратные уравнения",
+            subject=math,
+            mode=TestMode.SIMPLE.value,
+        )
+    """
+
     title = models.CharField(max_length=255)
     subject = models.ForeignKey("graph.Subject", on_delete=models.PROTECT, related_name="tests")
     mode = models.CharField(
@@ -25,6 +40,18 @@ class Test(models.Model):
 
 
 class TestItem(models.Model):
+    """
+    Элемент теста: задание + порядок + максимальный балл в рамках конкретного теста.
+
+    Зачем:
+    - переиспользовать один `Task` в нескольких тестах;
+    - контролировать порядок выдачи заданий;
+    - фиксировать max_score для тестового контекста.
+
+    Пример:
+        TestItem.objects.create(test=test, task=task, order=1, max_score=1)
+    """
+
     test = models.ForeignKey("training.Test", on_delete=models.CASCADE, related_name="items")
     task = models.ForeignKey("tasks.Task", on_delete=models.PROTECT, related_name="test_items")
     order = models.PositiveSmallIntegerField()
@@ -43,6 +70,25 @@ class TestItem(models.Model):
 
 
 class TestAttempt(models.Model):
+    """
+    Попытка прохождения теста (контейнер).
+
+    Содержит:
+    - статус, времена старта/финиша;
+    - итоговый балл (снапшот на момент завершения).
+
+    Детализация ответов хранится в `TaskAttempt` (с FK на `test_attempt`).
+
+    Пример:
+        attempt = TestAttempt.objects.create(user=user, test=test)
+        # ... пользователь решает задания ...
+        attempt.status = AttemptStatus.FINISHED.value
+        attempt.finished_at = timezone.now()
+        attempt.total_score = 7
+        attempt.max_score = 10
+        attempt.save()
+    """
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="test_attempts")
     test = models.ForeignKey("training.Test", on_delete=models.CASCADE, related_name="attempts")
 
@@ -72,6 +118,30 @@ class TestAttempt(models.Model):
 
 
 class TaskAttempt(models.Model):
+    """
+    Попытка решения задания — атомарный факт "пользователь отправил ответ".
+
+    Почему это важно:
+    - это основная сущность для истории обучения и пересчета метрик графа;
+    - может существовать как внутри теста (test_attempt != null),
+      так и вне тестов (свободная тренировка).
+
+    Поля `applied_scoring_policy` и `applied_max_score` — снапшот,
+    чтобы результат был воспроизводим при изменении rubric/правил в будущем.
+
+    Пример (short_text):
+        TaskAttempt.objects.create(
+            user=user,
+            task=task,
+            test_attempt=attempt,
+            answer_payload={"value": "масса"},
+            score=1,
+            is_correct=True,
+            applied_max_score=1,
+            applied_scoring_policy={"mode": "binary"},
+        )
+    """
+
     task = models.ForeignKey("tasks.Task", on_delete=models.PROTECT, related_name="attempts")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="task_attempts")
 

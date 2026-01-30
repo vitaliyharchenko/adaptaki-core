@@ -2,6 +2,15 @@ from django.db import models
 
 
 class Exam(models.Model):
+    """
+    Экзамен (например: ЕГЭ, ОГЭ, ВПР).
+
+    Это верхний уровень рубрикатора.
+
+    Пример:
+        Exam.objects.create(title="ЕГЭ")
+    """
+
     title = models.CharField(max_length=255, unique=True)
 
     class Meta:
@@ -13,6 +22,19 @@ class Exam(models.Model):
 
 
 class ExamType(models.Model):
+    """
+    Экзамен по предмету (например: ЕГЭ по математике).
+
+    Зачем:
+    - один и тот же экзамен может иметь разные структуры заданий по разным предметам;
+    - это "контекст", в котором существуют группы/номера заданий (`ExamTaskGroup`).
+
+    Пример:
+        ege = Exam.objects.get(title="ЕГЭ")
+        math = Subject.objects.get(title="Математика")
+        ExamType.objects.create(exam=ege, subject=math, is_active=True)
+    """
+
     # Exam + Subject (e.g. EGE Math). "Type" name kept to match current README.
     exam = models.ForeignKey("exams.Exam", on_delete=models.PROTECT, related_name="types")
     subject = models.ForeignKey("graph.Subject", on_delete=models.PROTECT, related_name="exam_types")
@@ -31,6 +53,23 @@ class ExamType(models.Model):
 
 
 class ExamTaskGroup(models.Model):
+    """
+    Группа/номер экзаменационного задания внутри конкретного `ExamType`.
+
+    Здесь хранится экзаменационная политика оценивания (scoring policy).
+    В режиме экзаменационного тренажера проверка ответа может опираться на:
+        Task.exam_task_type.exam_task_group.scoring_policy
+
+    Пример:
+        group = ExamTaskGroup.objects.create(
+            exam_type=exam_type,
+            num=13,
+            title="Планиметрия",
+            scoring_policy={"mode": "binary"},
+            max_score=2,
+        )
+    """
+
     exam_type = models.ForeignKey(
         "exams.ExamType", on_delete=models.CASCADE, related_name="task_groups"
     )
@@ -55,6 +94,21 @@ class ExamTaskGroup(models.Model):
 
 
 class ExamTaskType(models.Model):
+    """
+    Подтип внутри `ExamTaskGroup` (опциональный уровень детализации).
+
+    Зачем:
+    - более точная рубрикация заданий внутри номера/группы;
+    - `tasks.Task` может ссылаться на `ExamTaskType` (nullable).
+
+    Пример:
+        ExamTaskType.objects.create(
+            exam_task_group=group,
+            title="Прямоугольный треугольник",
+            is_active=True,
+        )
+    """
+
     exam_task_group = models.ForeignKey(
         "exams.ExamTaskGroup", on_delete=models.CASCADE, related_name="task_types"
     )

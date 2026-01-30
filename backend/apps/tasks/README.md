@@ -1,100 +1,62 @@
-# Tasks app plan (MVP → расширение)
+# tasks
 
-Ниже план реализации базы заданий и проверки ответов с учетом MVP типов:
-- single_choice (radio)
-- multi_choice (checkbox)
-- number (число с допуском)
-- short_text (строка)
-- match (сопоставление)
+Приложение `tasks` — банк заданий.
 
-## 1. Архитектура и модель данных
+Цели:
+- хранить контент заданий (условие, решение, правильный ответ);
+- поддерживать разные типы заданий через `task_type` + JSON-поля `type_payload`/`answer_key`;
+- связывать задания с образовательным графом (`graph.Node`), чтобы результаты решения влияли на метрики;
+- (опционально) привязывать задания к экзаменационному рубрикатору (`exams.ExamTaskType`) для экзамен-режима.
 
-1) Базовые сущности
-- Task
-  - общие поля: subject, grade, type, prompt, solution_text
-  - поля для расширения:
-    - type_payload (JSON): структура интерфейса задания
-    - answer_key (JSON): правильный ответ
-- Test
-  - название/описание
-- TestItem
-  - связь Test → Task + order + points
-- Attempt
-  - пользователь, тест, статус, started_at/finished_at
-- AttemptAnswer
-  - attempt, task, answer_payload (JSON), score, is_correct, duration_ms, submitted_at
+Архитектура:
+- `domain/` — смыслы/enum'ы типов заданий (без Django)
+- `application/` — use cases проверки/прохождения (позже)
+- `infrastructure/` — Django ORM модели (без бизнес-логики)
 
-2) Медиа
-- MediaAsset (для картинок/чертежей/графиков)
-  - url, mime_type, width, height, size
-- В prompt хранить ссылки вида `media:img_123` либо Markdown-изображения
+## Модели
 
-## 2. Форматы type_payload и answer_key (MVP)
+### Task
+Задание (контент).
 
-1) single_choice
-- type_payload: options (id, text, media_id)
-- answer_key: { "correct": "A" }
+Зачем:
+- единая сущность, которую можно переиспользовать в разных тестах (`training.Test`);
+- один и тот же `Task` может решаться учеником много раз (это хранится в `training.TaskAttempt`).
 
-2) multi_choice
-- type_payload: options (id, text, media_id)
-- answer_key: { "correct": ["A","C"] }
+Ключевые поля:
+- `subject` — предмет (`graph.Subject`)
+- `task_type` — тип задания (enum в `tasks.domain.enums.TaskType`)
+- `prompt` — условие (Markdown + LaTeX)
+- `solution_text` — решение (Markdown + LaTeX)
+- `type_payload` — JSON для интерфейса (например, список вариантов)
+- `answer_key` — JSON с правильным ответом (для автопроверки)
+- `exam_task_type` (nullable) — привязка к рубрикатору экзамена
 
-3) number
-- type_payload: { "format": "float", "unit": "м/с" }
-- answer_key: { "value": 9.8, "tolerance": 0.05, "method": "abs" }
+Пример (short_text):
+- `task_type="short_text"`
+- `type_payload={ "max_len": 50 }`
+- `answer_key={ "correct": ["масса"], "case_sensitive": false }`
 
-4) short_text
-- type_payload: { "max_len": 50 }
-- answer_key: { "correct": ["масса"], "case_sensitive": false }
+### TaskNode
+Прослойка (through) для связи `Task` ↔ `graph.Node`.
 
-5) match
-- type_payload: left[] и right[] (id, text, media_id)
-- answer_key: { "pairs": [["L1","R1"],["L2","R2"]] }
+Зачем:
+- иметь явную таблицу связей (проще расширять: например, добавить вес связи или комментарий методиста);
+- контролировать уникальность пары (task, node).
 
-## 3. Сервисы проверки (без логики во views)
+Пример:
+- `TaskNode(task=Задание#1, node=Теорема Виета)`
 
-1) TaskAnswerChecker
-- вход: task.type, task.answer_key, user.answer_payload
-- выход: is_correct + score
+## MVP-типы заданий (план)
 
-2) Реализация по типам
-- single_choice: сравнение id
-- multi_choice: сравнение множеств
-- number: допуск abs/rel
-- short_text: нормализация + совпадение по списку
-- match: сравнение пар
+Для MVP (первые реализации проверки):
+- `short_text` — строка
+- `number` — число (с допуском)
+- `single_choice` — один вариант
+- `multi_choice` — несколько вариантов
+- `match` — сопоставление
 
-## 4. API (минимальный набор)
+## Про формулы и картинки
 
-1) Управление заданиями (админка)
-- POST /api/tasks/ (создать)
-- GET /api/tasks/<id>/ (просмотр)
-- PATCH /api/tasks/<id>/ (редактирование)
+- Формулы: храним LaTeX внутри Markdown (`$...$`, `$$...$$`), рендер на клиентах (KaTeX/MathJax).
+- Картинки: хранить как отдельные media-assets (будущий app), в `prompt`/`type_payload` хранить ссылки/идентификаторы.
 
-2) Прохождение тестов
-- POST /api/tests/<id>/start
-- GET /api/attempts/<id>/
-- GET /api/attempts/<id>/tasks/<task_id>/
-- POST /api/attempts/<id>/submit
-- POST /api/attempts/<id>/finish
-
-## 5. Рендеринг формул
-
-- Храним Markdown с LaTeX ($...$, $$...$$)
-- Web и Telegram Mini Apps: KaTeX
-- React Native: WebView (KaTeX) или server-side SVG/PNG
-
-## 6. Этапы реализации
-
-1) Создать app `tasks` и базовые модели
-2) Реализовать проверку short_text (первый тип)
-3) Добавить API для выдачи/приема ответов
-4) Добавить tests/test_items/attempts
-5) Подключить media_assets
-6) Реализовать остальные типы
-
-## 7. Миграция SQLite → Postgres
-
-- На MVP можно оставаться на SQLite
-- Перед запуском в прод — перейти на Postgres
-- Использовать JSONB для payload/answer_key

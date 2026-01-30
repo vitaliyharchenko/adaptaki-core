@@ -4,6 +4,17 @@ from apps.tasks.domain.enums import TaskType
 
 
 class TaskNode(models.Model):
+    """
+    Связь между заданием (`Task`) и вершиной образовательного графа (`graph.Node`).
+
+    Почему это отдельная модель, а не "просто ManyToMany":
+    - это явная таблица связей (проще расширять: вес связи, комментарий методиста, источник и т.п.);
+    - можно жестко контролировать уникальность пары (task, node).
+
+    Пример:
+        TaskNode.objects.create(task=task, node=node)
+    """
+
     task = models.ForeignKey("tasks.Task", on_delete=models.CASCADE, related_name="task_nodes")
     node = models.ForeignKey("graph.Node", on_delete=models.CASCADE, related_name="node_tasks")
 
@@ -21,6 +32,30 @@ class TaskNode(models.Model):
 
 
 class Task(models.Model):
+    """
+    Задание (контент), который можно:
+    - показывать в разных клиентах;
+    - включать в тесты (`training.TestItem`);
+    - решать многократно (это фиксируется в `training.TaskAttempt`).
+
+    Формат контента:
+    - `prompt` и `solution_text` храним как Markdown с формулами LaTeX ($...$, $$...$$).
+
+    Расширяемость по типам:
+    - `task_type` определяет вид задания;
+    - `type_payload` хранит структуру интерфейса (варианты, пары и т.д.);
+    - `answer_key` хранит правильный ответ для автопроверки.
+
+    Пример (short_text):
+        Task.objects.create(
+            subject=math,
+            task_type=TaskType.SHORT_TEXT.value,
+            prompt="Что такое масса? Ответьте одним словом.",
+            type_payload={"max_len": 50},
+            answer_key={"correct": ["масса"], "case_sensitive": False},
+        )
+    """
+
     subject = models.ForeignKey("graph.Subject", on_delete=models.PROTECT, related_name="tasks")
     task_type = models.CharField(
         max_length=64,
