@@ -18,10 +18,6 @@ class ExamType(models.Model):
     subject = models.ForeignKey("graph.Subject", on_delete=models.PROTECT, related_name="exam_types")
     is_active = models.BooleanField(default=True)
 
-    # Optional fields (not required by current README, but useful when you get to versions)
-    year = models.PositiveSmallIntegerField(null=True, blank=True)
-    level = models.CharField(max_length=32, null=True, blank=True)
-
     class Meta:
         verbose_name = "Экзамен по предмету"
         verbose_name_plural = "Экзамены по предметам"
@@ -31,10 +27,6 @@ class ExamType(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover
         parts = [self.exam.title, self.subject.title]
-        if self.year:
-            parts.append(str(self.year))
-        if self.level:
-            parts.append(self.level)
         return " / ".join(parts)
 
 
@@ -47,7 +39,6 @@ class ExamTaskGroup(models.Model):
     is_active = models.BooleanField(default=True)
 
     # Exam-mode scoring contract.
-    task_type = models.CharField(max_length=64)
     scoring_policy = models.JSONField(default=dict, blank=True)
     max_score = models.PositiveSmallIntegerField(default=1)
 

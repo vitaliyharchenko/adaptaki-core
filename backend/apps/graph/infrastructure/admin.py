@@ -12,8 +12,9 @@ class SubjectAdmin(admin.ModelAdmin):
 
 @admin.register(Concept)
 class ConceptAdmin(admin.ModelAdmin):
-    list_display = ("id", "title")
-    search_fields = ("title",)
+    list_display = ("id", "title", "subject")
+    list_filter = ("subject",)
+    search_fields = ("title", "subject__title")
     ordering = ("id",)
 
 
@@ -31,4 +32,3 @@ class RelationAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     search_fields = ("parent__title", "child__title")
     ordering = ("id",)
-

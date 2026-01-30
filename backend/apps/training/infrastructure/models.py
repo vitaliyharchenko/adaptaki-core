@@ -30,15 +30,6 @@ class TestItem(models.Model):
     order = models.PositiveSmallIntegerField()
     max_score = models.PositiveSmallIntegerField(default=1)
 
-    # In exam mode this can point to the rubric group to apply scoring policy.
-    exam_task_group = models.ForeignKey(
-        "exams.ExamTaskGroup",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="test_items",
-    )
-
     class Meta:
         verbose_name = "Элемент теста"
         verbose_name_plural = "Элементы теста"

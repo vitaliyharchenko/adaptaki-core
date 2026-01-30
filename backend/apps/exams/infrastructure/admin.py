@@ -12,16 +12,16 @@ class ExamAdmin(admin.ModelAdmin):
 
 @admin.register(ExamType)
 class ExamTypeAdmin(admin.ModelAdmin):
-    list_display = ("id", "exam", "subject", "year", "level", "is_active")
-    list_filter = ("is_active", "exam", "subject", "year", "level")
+    list_display = ("id", "exam", "subject", "is_active")
+    list_filter = ("is_active", "exam", "subject")
     search_fields = ("exam__title", "subject__title")
     ordering = ("id",)
 
 
 @admin.register(ExamTaskGroup)
 class ExamTaskGroupAdmin(admin.ModelAdmin):
-    list_display = ("id", "exam_type", "num", "title", "task_type", "max_score", "is_active")
-    list_filter = ("is_active", "exam_type", "task_type")
+    list_display = ("id", "exam_type", "num", "title", "max_score", "is_active")
+    list_filter = ("is_active", "exam_type")
     search_fields = ("title", "exam_type__exam__title", "exam_type__subject__title")
     ordering = ("exam_type", "num", "id")
 
@@ -32,4 +32,3 @@ class ExamTaskTypeAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "exam_task_group")
     search_fields = ("title", "exam_task_group__title")
     ordering = ("id",)
-

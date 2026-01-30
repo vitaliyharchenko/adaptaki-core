@@ -16,6 +16,13 @@ class Subject(models.Model):
 
 class Concept(models.Model):
     title = models.CharField(max_length=255)
+    subject = models.ForeignKey(
+        "graph.Subject",
+        on_delete=models.PROTECT,
+        related_name="concepts",
+        null=True,
+        blank=True,
+    )
     description = models.TextField(blank=True, default="")
 
     class Meta:

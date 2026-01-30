@@ -17,11 +17,4 @@ class TaskAdmin(admin.ModelAdmin):
     ordering = ("-id",)
     inlines = (TaskNodeInline,)
 
-
-@admin.register(TaskNode)
-class TaskNodeAdmin(admin.ModelAdmin):
-    list_display = ("id", "task", "node")
-    search_fields = ("task__id", "node__title")
-    ordering = ("-id",)
-    autocomplete_fields = ("task", "node")
-
+    # TaskNode is intentionally not registered as a standalone model in admin.

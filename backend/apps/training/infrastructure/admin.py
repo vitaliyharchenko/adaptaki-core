@@ -6,7 +6,7 @@ from apps.training.models import TaskAttempt, Test, TestAttempt, TestItem
 class TestItemInline(admin.TabularInline):
     model = TestItem
     extra = 0
-    autocomplete_fields = ("task", "exam_task_group")
+    autocomplete_fields = ("task",)
 
 
 @admin.register(Test)
@@ -17,14 +17,7 @@ class TestAdmin(admin.ModelAdmin):
     ordering = ("-id",)
     inlines = (TestItemInline,)
 
-
-@admin.register(TestItem)
-class TestItemAdmin(admin.ModelAdmin):
-    list_display = ("id", "test", "order", "task", "max_score", "exam_task_group")
-    list_filter = ("test",)
-    search_fields = ("test__title",)
-    ordering = ("test", "order", "id")
-    autocomplete_fields = ("test", "task", "exam_task_group")
+    # TestItem is intentionally not registered as a standalone model in admin.
 
 
 @admin.register(TestAttempt)
@@ -43,4 +36,3 @@ class TaskAttemptAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "task__id")
     ordering = ("-id",)
     autocomplete_fields = ("user", "task", "test_attempt")
-
