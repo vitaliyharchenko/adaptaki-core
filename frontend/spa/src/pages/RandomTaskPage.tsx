@@ -289,9 +289,10 @@ export default function RandomTaskPage({ onBack }: Props) {
                 </div>
               ) : null}
               {task ? (
-                <TrainingTaskSolve
-                  prompt={task.prompt}
-                  answerValue={answerValue}
+              <TrainingTaskSolve
+                taskId={task.id}
+                prompt={task.prompt}
+                answerValue={answerValue}
                   onAnswerChange={setAnswerValue}
                   onSubmit={submitAnswer}
                   submitDisabled={!answerValue.trim()}

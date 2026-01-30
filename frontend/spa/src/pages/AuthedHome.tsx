@@ -23,12 +23,12 @@ export default function AuthedHome({ user }: Props) {
         {isStudent ? (
           <div className="card shadow-sm mt-3">
             <div className="card-body">
-              <h2 className="h6 mb-2">Практика в рандомном режиме</h2>
+              <h2 className="h4 mb-2">Решай случайные задания</h2>
               <p className="text-body-secondary mb-3">
-                Перейдите к странице со случайными заданиями и начните тренировку.
+                Перейди к рандомным заданиями и начни тренировку прямо сейчас!
               </p>
               <Link className="btn btn-primary" to="/random">
-                Перейти к заданиям
+                На старт!
               </Link>
             </div>
           </div>

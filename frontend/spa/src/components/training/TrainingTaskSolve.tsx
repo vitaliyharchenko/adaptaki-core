@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 type Props = {
+  taskId?: number;
   prompt: string;
   answerValue: string;
   onAnswerChange: (value: string) => void;
@@ -31,6 +32,7 @@ const formatCorrectAnswer = (answerKey?: Record<string, unknown>) => {
 };
 
 export default function TrainingTaskSolve({
+  taskId,
   prompt,
   answerValue,
   onAnswerChange,
@@ -65,16 +67,18 @@ export default function TrainingTaskSolve({
 
   return (
     <div>
-      <h2 className="h6 text-uppercase text-body-secondary">Условие</h2>
+      <div className="d-flex justify-content-between align-items-start">
+        <h2 className="h6 text-uppercase text-body-secondary">Условие</h2>
+        {taskId !== undefined ? (
+          <span className="text-body-secondary small">ID: {taskId}</span>
+        ) : null}
+      </div>
       <p className="mb-4">{prompt}</p>
-      <div className="card border-0 bg-body-tertiary mb-4">
+      <div className="card border-0 bg-body-tertiary mb-0">
         <div className="card-body">
-          <h3 className="h6 text-uppercase text-body-secondary">Ваш ответ (строка)</h3>
+          <h3 className="h6 text-uppercase text-body-secondary">Ваш ответ</h3>
           <div className="row g-2 align-items-end">
             <div className="col-12 col-md-8">
-              <label className="form-label" htmlFor="answer-input">
-                Ответ
-              </label>
               <input
                 id="answer-input"
                 className={`form-control ${inputStateClass}`}
@@ -112,12 +116,7 @@ export default function TrainingTaskSolve({
               <div>
                 Балл: {submitResult.score} / {submitResult.max_score}
               </div>
-              {!submitResult.is_correct && correctAnswerText ? (
-                <div className="mt-1">
-                  Верный ответ: <span className="text-body">{correctAnswerText}</span>
-                </div>
-              ) : null}
-              {submitResult.solution_text ? (
+              {submitResult.solution_text || correctAnswerText ? (
                 <div className="mt-2">
                   <a
                     href="#"
@@ -130,7 +129,16 @@ export default function TrainingTaskSolve({
                     {showSolution ? "Скрыть решение" : "Показать решение"}
                   </a>
                   {showSolution ? (
-                    <div className="mt-2 text-body">{submitResult.solution_text}</div>
+                    <div className="mt-2 text-body">
+                      {correctAnswerText ? (
+                        <div>Верный ответ: {correctAnswerText}</div>
+                      ) : null}
+                      {submitResult.solution_text ? (
+                        <div className={correctAnswerText ? "mt-2" : undefined}>
+                          {submitResult.solution_text}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               ) : null}

@@ -54,9 +54,14 @@ export default function TestAttemptSummary({
         ) : null}
         {summary ? (
           <>
-            <div className="d-flex flex-wrap gap-4 mb-4 text-body-secondary">
-              <span>Сумма баллов: {summary.total_score}</span>
-              <span>Максимум: {summary.max_score}</span>
+            <div className="mb-4">
+              <div className="h5 mb-0">
+                Сумма баллов: {summary.total_score} из {summary.max_score} (
+                {Number(summary.max_score) > 0
+                  ? Math.round((Number(summary.total_score) / Number(summary.max_score)) * 100)
+                  : 0}
+                %)
+              </div>
             </div>
             {summary.items.length === 0 ? (
               <p className="text-body-secondary mb-4">

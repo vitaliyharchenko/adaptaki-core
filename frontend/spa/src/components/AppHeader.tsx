@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { User } from "../auth";
 
 type Props = {
@@ -14,28 +14,9 @@ export default function AppHeader({ user, onLogout, showRandomLink }: Props) {
         <div className="col-12">
           <nav className="navbar navbar-expand bg-body border rounded-3 px-3">
             <div className="container-fluid px-0">
-              <span className="navbar-brand fw-semibold">Adaptaki</span>
-
-              {user && showRandomLink ? (
-                <div className="d-flex align-items-center gap-3">
-                  <NavLink
-                    className={({ isActive }) =>
-                      `nav-link ${isActive ? "fw-semibold text-body" : ""}`
-                    }
-                    to="/"
-                  >
-                    Главная
-                  </NavLink>
-                  <NavLink
-                    className={({ isActive }) =>
-                      `nav-link ${isActive ? "fw-semibold text-body" : ""}`
-                    }
-                    to="/random"
-                  >
-                    Случайное задание
-                  </NavLink>
-                </div>
-              ) : null}
+              <Link className="navbar-brand fw-semibold" to="/">
+                Adaptaki
+              </Link>
 
               {user ? (
                 <div className="d-flex align-items-center gap-3">
