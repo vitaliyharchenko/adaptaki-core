@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # local-apps
-    'apps.ping',
     'apps.users',
 ]
 
