@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const res = await api.get("/auth/me/");
       setUser(res.data);
     } catch {
+      localStorage.removeItem("access_token");
       setUser(null);
     }
   };
