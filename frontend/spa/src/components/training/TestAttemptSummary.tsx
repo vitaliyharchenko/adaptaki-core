@@ -6,6 +6,7 @@ export type SummaryItem = {
   task_type: string;
   prompt: string;
   answer_payload: Record<string, unknown>;
+  answer_key?: Record<string, unknown>;
   is_correct: boolean;
   score: string;
   max_score: string;
@@ -32,6 +33,50 @@ type Props = {
   footer?: ReactNode;
 };
 
+const formatAnswerPayload = (answerPayload?: Record<string, unknown>) => {
+  if (!answerPayload) return null;
+  const value = answerPayload.value ?? answerPayload.choice ?? answerPayload.id;
+  if (value !== undefined && value !== null) return String(value);
+  const values = answerPayload.values;
+  if (Array.isArray(values)) return values.map((item) => String(item)).join(", ");
+  const pairs = answerPayload.pairs;
+  if (pairs && typeof pairs === "object" && !Array.isArray(pairs)) {
+    const entries = Object.entries(pairs as Record<string, unknown>);
+    if (entries.length === 0) return null;
+    return entries.map(([key, val]) => `${key}: ${String(val)}`).join(", ");
+  }
+  return null;
+};
+
+const formatAnswerKey = (answerKey?: unknown) => {
+  if (answerKey === undefined || answerKey === null) return null;
+  if (Array.isArray(answerKey)) {
+    return answerKey.map((item) => String(item)).join(", ");
+  }
+  if (typeof answerKey !== "object") return String(answerKey);
+
+  const correct = (answerKey as { correct?: unknown }).correct;
+  if (correct !== undefined && correct !== null) {
+    if (Array.isArray(correct)) {
+      return correct.map((item) => String(item)).join(", ");
+    }
+    if (typeof correct === "object") {
+      const entries = Object.entries(correct as Record<string, unknown>);
+      if (entries.length === 0) return null;
+      return entries.map(([key, val]) => `${key}: ${String(val)}`).join(", ");
+    }
+    return String(correct);
+  }
+
+  return formatAnswerPayload(answerKey as Record<string, unknown>);
+};
+
+const formatScoreValue = (value: string) => {
+  const parsed = Number.parseFloat(value);
+  if (Number.isNaN(parsed)) return value;
+  return String(Math.round(parsed));
+};
+
 export default function TestAttemptSummary({
   summary,
   state,
@@ -56,7 +101,8 @@ export default function TestAttemptSummary({
           <>
             <div className="mb-4">
               <div className="h5 mb-0">
-                Сумма баллов: {summary.total_score} из {summary.max_score} (
+                Сумма баллов: {formatScoreValue(summary.total_score)} из{" "}
+                {formatScoreValue(summary.max_score)} (
                 {Number(summary.max_score) > 0
                   ? Math.round((Number(summary.total_score) / Number(summary.max_score)) * 100)
                   : 0}
@@ -75,7 +121,7 @@ export default function TestAttemptSummary({
                       <th scope="col">№</th>
                       <th scope="col">Задание</th>
                       <th scope="col">Ваш ответ</th>
-                      <th scope="col">Ключ</th>
+                      <th scope="col">Правильный ответ</th>
                       <th scope="col">Балл</th>
                       <th scope="col">Статус</th>
                     </tr>
@@ -87,20 +133,18 @@ export default function TestAttemptSummary({
                         <td className="text-truncate" style={{ maxWidth: 320 }}>
                           {item.prompt}
                         </td>
-                        <td>
-                          <pre className="mb-0 small bg-body-tertiary rounded p-2">
-                            {JSON.stringify(item.answer_payload ?? {}, null, 2)}
-                          </pre>
+                        <td className="small">
+                          {formatAnswerPayload(item.answer_payload) ?? "—"}
                         </td>
-                        <td className="small">{item.solution_text ?? "—"}</td>
+                        <td className="small">{formatAnswerKey(item.answer_key) ?? "—"}</td>
                         <td>
-                          {item.score} / {item.max_score}
+                          {formatScoreValue(item.score)} / {formatScoreValue(item.max_score)}
                         </td>
                         <td>
                           {item.is_correct ? (
                             <span className="badge text-bg-success">Верно</span>
                           ) : (
-                            <span className="badge text-bg-warning">Неверно</span>
+                            <span className="badge text-bg-danger">Неверно</span>
                           )}
                         </td>
                       </tr>

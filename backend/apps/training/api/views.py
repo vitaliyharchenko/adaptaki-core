@@ -282,6 +282,7 @@ class TestAttemptSummaryView(APIView):
                         "task_type": item.task.task_type,
                         "prompt": item.task.prompt,
                         "answer_payload": item.answer_payload,
+                        "answer_key": item.task.answer_key,
                         "is_correct": item.is_correct,
                         "score": str(item.score),
                         "max_score": str(item.applied_max_score or 0),
